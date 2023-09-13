@@ -1,5 +1,8 @@
 const otpServices = require('../services/otp-services.js')
 const hashServices = require('../services/hash-services.js')
+const userServices = require('../services/user-services.js')
+const tokenServices = require('../services/token-services.js')
+const UserModel = require('../models/user-model.js')
 
 class AuthController {
     async sendOTP(req, res) {
@@ -17,8 +20,58 @@ class AuthController {
             await otpServices.sendByEmail(email, OTP)
             return res.json({ hash, expires, email })
         } catch (error) {
-            res.json({ success: false, error })
+            return res.json({ success: false, error })
         }
+    }
+
+    async verifyOTP(req, res) {
+        const { email, OTP, hash, expires } = req.body
+        if (!OTP || !email || !hash) {
+            return res.status(400).json({
+                success: false,
+                message: 'All fields are required.'
+            })
+        }
+        if (Date.now() > Number(expires)) {
+            return res.status(400).json({
+                success: false,
+                message: 'OTP expired.'
+            })
+        }
+        const newData = `${email}.${OTP}.${expires}`
+        const isValid = otpServices.verifyOTP(hash, newData)
+        if (!isValid) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid OTP`
+            })
+        }
+
+        let user;
+        try {
+            user = await userServices.findUser({ email })
+            if (!user) {
+                user = await userServices.createUser({ email })
+            }
+        } catch (error) {
+            console.log(error)
+            return res.status(400).json({
+                success: false,
+                message: error.message
+            })
+        }
+
+        const payload = {
+            _id: user._id,
+            activated: false
+        }
+        const { accessToken, refreshToken } = await tokenServices.generateTokens(payload)
+        res.cookie('refresh-token', refreshToken, {
+            maxAge: 1000*60*60*24*30,
+            httpOnly: true
+        })
+
+        return res.json({ accessToken })
     }
 }
 

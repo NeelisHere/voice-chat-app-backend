@@ -1,13 +1,15 @@
 const crypto = require('crypto')
+const hashServices = require('./hash-services')
 const nodemailer = require("nodemailer");
 
 class OTPServices {
+
     async generateOTP(digits) {
         const lb = Number('1' + '0'.repeat(digits - 1))
         const ub = Number('9'.repeat(digits))
         return crypto.randomInt(lb, ub)
     }
-    // async sendBySMS(phone, OTP) {}
+
     async sendByEmail(email, OTP) {
         const transporter = nodemailer.createTransport({
             host: 'smtp.ethereal.email',
@@ -25,8 +27,10 @@ class OTPServices {
         });
     }
 
-    verifyOTP() { }
-
+    async verifyOTP(hashedOTP, data) {
+        const newHash = hashServices.hashOTP(data)
+        return (newHash === hashedOTP)
+    }
 }
 
 module.exports = new OTPServices();
