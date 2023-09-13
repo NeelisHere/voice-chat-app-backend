@@ -71,7 +71,7 @@ class AuthController {
             httpOnly: true
         })
 
-        return res.json({ accessToken })
+        return res.json({ accessToken, user })
     }
 }
 
