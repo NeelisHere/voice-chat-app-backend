@@ -11,12 +11,17 @@ class TokenServices {
         })
         return { accessToken, refreshToken }
     }
+    
     async storeRefreshToken(token, userId) {
         try {
             await RefreshModel.create({ token, userId })
         } catch (error) {
             console.log(error.message)
         }
+    }
+    
+    async verifyAccessToken(token) {
+        return jwt.verify(token, process.env.JWT_ACCESS_TOKEN_SECRET)
     }
 }
 

@@ -67,12 +67,12 @@ class AuthController {
 
         await tokenServices.storeRefreshToken(refreshToken, user._id)
 
-        res.cookie('refresh-token', refreshToken, {
+        res.cookie('refreshToken', refreshToken, {
             maxAge: 1000*60*60*24*30,
             httpOnly: true
         })
 
-        res.cookie('access-token', accessToken, {
+        res.cookie('accessToken', accessToken, {
             maxAge: 1000*60*60*24*30,
             httpOnly: true
         })
