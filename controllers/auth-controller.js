@@ -2,7 +2,7 @@ const otpServices = require('../services/otp-services.js')
 const hashServices = require('../services/hash-services.js')
 const userServices = require('../services/user-services.js')
 const tokenServices = require('../services/token-services.js')
-const UserModel = require('../models/user-model.js')
+const UserDTOS = require('../dtos/user-dtos.js')
 
 class AuthController {
     async sendOTP(req, res) {
@@ -46,7 +46,6 @@ class AuthController {
                 message: `Invalid OTP`
             })
         }
-
         let user;
         try {
             user = await userServices.findUser({ email })
@@ -60,18 +59,26 @@ class AuthController {
                 message: error.message
             })
         }
-
         const payload = {
             _id: user._id,
             activated: false
         }
         const { accessToken, refreshToken } = await tokenServices.generateTokens(payload)
+
+        await tokenServices.storeRefreshToken(refreshToken, user._id)
+
         res.cookie('refresh-token', refreshToken, {
             maxAge: 1000*60*60*24*30,
             httpOnly: true
         })
 
-        return res.json({ accessToken, user })
+        res.cookie('access-token', accessToken, {
+            maxAge: 1000*60*60*24*30,
+            httpOnly: true
+        })
+
+        const _user = new UserDTOS(user)
+        return res.json({ auth: true, user: _user })
     }
 }
 
