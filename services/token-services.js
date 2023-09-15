@@ -43,6 +43,10 @@ class TokenServices {
             throw error
         }
     }
+
+    async removeToken(refreshToken) {
+        await RefreshModel.deleteOne({ token: refreshToken })
+    }
 }
 
 module.exports = new TokenServices()

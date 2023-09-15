@@ -7,5 +7,6 @@ router.post('/send-otp', authController.sendOTP)
 router.post('/verify-otp', authController.verifyOTP)
 router.post('/activate', authMiddleware, activateController.activate)
 router.get('/refresh', authController.refresh)
+router.post('/logout', authMiddleware, authController.logout)
 
 module.exports = router

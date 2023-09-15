@@ -2,6 +2,7 @@ const tokenServices = require('../services/token-services.js')
 
 module.exports = async (req, res, next) => {
     try {
+        // console.log('<inside auth-middleware>')
         const { accessToken } = req.cookies
         // console.log('<auth-middleware>', req.cookies)
         if(!accessToken) throw new Error()
