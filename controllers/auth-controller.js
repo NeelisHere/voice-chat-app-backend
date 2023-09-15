@@ -80,6 +80,68 @@ class AuthController {
         const _user = new UserDTOS(user)
         return res.json({ auth: true, user: _user })
     }
+
+    async refresh(req, res) {
+        // 1. get refresh token from cookie
+        const { refreshToken: oldRefreshToken } = req.cookies
+
+        // 2. refresh token is valid?
+        let userData;
+        try {
+            userData = await tokenServices.verifyRefreshToken(oldRefreshToken)
+        } catch (error) {
+            // console.log('<verifyRefreshToken>')
+            return res.status(401).json({
+                message: 'Invalid token'
+            })
+        }
+        // 3. refresh token is in db?
+        try {
+            const token = await tokenServices.findRefreshToken(userData._id, oldRefreshToken)
+            if(!token) {
+                // console.log('<findRefreshToken>')
+                return res.status(401).json({
+                    message: 'Invalid token'
+                })
+            }
+        } catch (error) {
+            return res.status(500).json({
+                message: 'Internal Server Error'
+            })
+        }
+        // 4. user valid?
+        const user = await userServices.findUser({ _id: userData._id })
+        if(!user) {
+            return res.status(404).json({
+                message: 'User not found'
+            })
+        }
+        // 5. generate new access+refresh token
+        const { refreshToken, accessToken } = await tokenServices.generateTokens({ _id: userData._id })
+        // 6. update refresh token, store it in db
+        try {
+            await tokenServices.updateRefreshToken(userData._id, refreshToken)
+        } catch (error) {
+            return res.status(500).json({
+                message: 'Internal Server Error'
+            })
+        }
+        // 7. send them in res.cookie 
+        res.cookie('refreshToken', refreshToken, {
+            maxAge: 1000*60*60*24*30,
+            httpOnly: true
+        })
+
+        res.cookie('accessToken', accessToken, {
+            maxAge: 1000*60*60*24*30,
+            httpOnly: true
+        })
+
+        return res.json({ 
+            auth: true, 
+            user: new UserDTOS(user) 
+        })
+    }
 }
 
 module.exports = new AuthController()
