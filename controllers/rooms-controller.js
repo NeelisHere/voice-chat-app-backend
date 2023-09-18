@@ -20,6 +20,11 @@ class RoomsController {
             room: new RoomDTO(room) 
         })
     }
+    
+    async getAllRooms(req, res) {
+        const rooms = await roomServices.getAllRooms(['open'])
+        res.json({ success: true, rooms })
+    }
 }
 
 module.exports = new RoomsController()

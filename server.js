@@ -9,6 +9,13 @@ const PORT = process.env.PORT || 8000
 
 connectDB()
 const app = express()
+const server = require('http').createServer(app)
+const io = require('socket.io')(server, {
+    cors: {
+        origin: 'https://localhost:3000',
+        methods: ['GET', 'POST']
+    }
+})
 
 app.use(cors({
     origin: [process.env.FRONTEND_URL],
@@ -23,7 +30,13 @@ app.get('/', (req, res) =>{
     res.send('hi')
 })
 
-app.listen(PORT, () => {
+
+io.on('connection', (socket) => {
+    console.log('New Connection', socket.id)
+})
+
+
+server.listen(PORT, () => {
     console.log(`listening on: http://localhost:${PORT}`)
 })
 
