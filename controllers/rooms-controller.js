@@ -25,6 +25,14 @@ class RoomsController {
         const rooms = await roomServices.getAllRooms(['open'])
         res.json({ success: true, rooms })
     }
+
+    async getRoom(req, res) {
+        const room = await roomServices.getRoom(req.params.roomId)
+        return res.json({
+            success: true,
+            room
+        })
+    }
 }
 
 module.exports = new RoomsController()

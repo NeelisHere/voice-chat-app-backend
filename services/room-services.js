@@ -8,6 +8,7 @@ class RoomsServices {
         })
         return room;
     }
+
     async getAllRooms(roomTypeList) {
         const rooms = await RoomModel.find({ roomType: { $in: roomTypeList } })
                                     .populate('speakers')
@@ -16,6 +17,10 @@ class RoomsServices {
         return rooms
     }
 
+    async getRoom(roomId) {
+        const room = await RoomModel.findOne({ _id: roomId })
+        return room
+    }
 }
 
 module.exports = new RoomsServices()
