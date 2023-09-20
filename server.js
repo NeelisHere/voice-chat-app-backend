@@ -38,37 +38,45 @@ io.on('connection', (socket) => {
     console.log('New Connection', socket.id)
 
     socket.on(ACTIONS.JOIN, ({ roomId, user }) => {
-        console.log('[***]')
         socketUserMapping[socket.id] = user
         const clients = Array.from(io.sockets.adapter.rooms.get(roomId) || [])
-        // console.log('[]', clients)
+        // console.log(clients)
         clients.forEach((clientId) => {
+            /*** current user hasn't been joined in the room yet. ***/ 
             io.to(clientId).emit(ACTIONS.ADD_PEER, {
-                peerId: socket.id,
+                // inform all the existing clients about the latest user joined, hence socket.id
+                peerId: socket.id, 
                 createOffer: false,
                 user
             })
             socket.emit(ACTIONS.ADD_PEER, {
+                // inform the latest user (current socket) about each client
                 peerId: clientId,
                 createOffer: true,
                 user: socketUserMapping[clientId]
             })
         })
+        socket.join(roomId) // include the latest user in the room
         
-        socket.join(roomId)
-        console.log(clients)
+        // console.log(
+        //     `\n************\n`, 
+        //     `\nclients:\n`, clients, 
+        //     `\nsocketUserMapping:\n`, socketUserMapping,
+        //     `\n************\n`
+        // )
     })
+
     //handle relay-ice
     socket.on(ACTIONS.RELAY_ICE, ({ peerId, icecandidate }) => {
-        console.log('<ice candidate in relay-ice>', icecandidate)
         io.to(peerId).emit(ACTIONS.ICE_CANDIDATE, {
             peerId: socket.id,
             icecandidate
         })
     })
+
     //handle relay-sdp (session description offer/answer)
     socket.on(ACTIONS.RELAY_SDP, ({ peerId, sessionDescription }) => {
-        io.to(peerId).emit(ACTIONS.SESSION_SECRIPTION, {
+        io.to(peerId).emit(ACTIONS.SESSION_DESCRIPTION, {
             peerId: socket.id,
             sessionDescription
         })
@@ -78,15 +86,15 @@ io.on('connection', (socket) => {
     const leaveRoom = async ({ roomId }) => {
         const { rooms } = socket
         Array.from(rooms).forEach((roomId) => {
-            const clients = Array.from(io.socket.adapter.rooms.get() || [])
+            const clients = Array.from(io.sockets.adapter.rooms.get(roomId) || [])
             clients.forEach((clientId) => {
                 io.to(clientId).emit(ACTIONS.REMOVE_PEER, {
                     peerId: socket.id,
-                    userId: socketUserMapping[socket.id]._id
+                    userId: socketUserMapping[socket.id]?._id
                 })
                 socket.emit(ACTIONS.REMOVE_PEER, {
                     peerId: clientId,
-                    userId: socketUserMapping[clientId]._id
+                    userId: socketUserMapping[clientId]?._id
                 })
             })
             socket.leave(roomId)
@@ -94,6 +102,7 @@ io.on('connection', (socket) => {
         delete socketUserMapping[socket.id]
     }
     socket.on(ACTIONS.LEAVE, leaveRoom)
+    socket.on('disconnecting', leaveRoom)
 })
 
 
@@ -101,7 +110,3 @@ server.listen(PORT, () => {
     console.log(`listening on: http://localhost:${PORT}`)
 })
 
-
-// app.listen(PORT, () => {
-//     console.log(`listening temp`)
-// })
