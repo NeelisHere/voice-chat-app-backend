@@ -13,7 +13,7 @@ const app = express()
 const server = require('http').createServer(app)
 const io = require('socket.io')(server, {
     cors: {
-        origin: 'http://localhost:3000',
+        origin: process.env.FRONTEND_URL,
         methods: ['GET', 'POST']
     }
 })
@@ -57,13 +57,6 @@ io.on('connection', (socket) => {
             })
         })
         socket.join(roomId) // include the latest user in the room
-        
-        // console.log(
-        //     `\n************\n`, 
-        //     `\nclients:\n`, clients, 
-        //     `\nsocketUserMapping:\n`, socketUserMapping,
-        //     `\n************\n`
-        // )
     })
 
     //handle relay-ice
@@ -79,6 +72,24 @@ io.on('connection', (socket) => {
         io.to(peerId).emit(ACTIONS.SESSION_DESCRIPTION, {
             peerId: socket.id,
             sessionDescription
+        })
+    })
+
+    // handle mute
+    socket.on(ACTIONS.MUTE, ({ roomId, userId }) => {
+        console.log('mute', userId)
+        const clients = Array.from(io.sockets.adapter.rooms.get(roomId) || [])
+        clients.forEach((clientId) => {
+            io.to(clientId).emit(ACTIONS.MUTE, { peerId: socket.id, userId })
+        })
+    })
+
+    // handle unmute
+    socket.on(ACTIONS.UNMUTE, ({ roomId, userId }) => {
+        console.log('unmute', userId)
+        const clients = Array.from(io.sockets.adapter.rooms.get(roomId) || [])
+        clients.forEach((clientId) => {
+            io.to(clientId).emit(ACTIONS.UNMUTE, { peerId: socket.id, userId })
         })
     })
 
@@ -102,10 +113,10 @@ io.on('connection', (socket) => {
         delete socketUserMapping[socket.id]
     }
     socket.on(ACTIONS.LEAVE, leaveRoom)
-    socket.on('disconnecting', leaveRoom)
+    socket.on('disconnect', leaveRoom)
 })
 
-
+ 
 server.listen(PORT, () => {
     console.log(`listening on: http://localhost:${PORT}`)
 })

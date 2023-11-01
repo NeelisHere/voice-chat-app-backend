@@ -22,7 +22,7 @@ class RoomsController {
     }
     
     async getAllRooms(req, res) {
-        const rooms = await roomServices.getAllRooms(['open'])
+        const rooms = await roomServices.getAllRooms(['open', 'social', 'closed'])
         res.json({ success: true, rooms })
     }
 
