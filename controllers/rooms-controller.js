@@ -1,5 +1,6 @@
 const roomServices = require('../services/room-services.js')
 const RoomDTO = require('../dtos/room-dto.js')
+const roomModel = require('../models/room-model.js')
 
 class RoomsController {
     async create(req, res) {
@@ -33,6 +34,25 @@ class RoomsController {
             room
         })
     }
+
+    async editRoom(req, res) {
+        const { roomId } = req.params
+        const updatedRoom = await roomModel.findOneAndUpdate({ _id: roomId }, req.body)
+        return res.json({
+            success: true,
+            updatedRoom
+        })
+    }
+
+    async deleteRoom(req, res) {
+        const { roomId } = req.params
+        const deletedRoom = await roomModel.findOneAndDelete({ _id: roomId })
+        return res.json({
+            success: true,
+            deletedRoom
+        })
+    }
+
 }
 
 module.exports = new RoomsController()

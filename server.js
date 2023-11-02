@@ -58,7 +58,6 @@ io.on('connection', (socket) => {
         })
         socket.join(roomId) // include the latest user in the room
     })
-
     //handle relay-ice
     socket.on(ACTIONS.RELAY_ICE, ({ peerId, icecandidate }) => {
         io.to(peerId).emit(ACTIONS.ICE_CANDIDATE, {
@@ -66,7 +65,6 @@ io.on('connection', (socket) => {
             icecandidate
         })
     })
-
     //handle relay-sdp (session description offer/answer)
     socket.on(ACTIONS.RELAY_SDP, ({ peerId, sessionDescription }) => {
         io.to(peerId).emit(ACTIONS.SESSION_DESCRIPTION, {
@@ -74,7 +72,6 @@ io.on('connection', (socket) => {
             sessionDescription
         })
     })
-
     // handle mute
     socket.on(ACTIONS.MUTE, ({ roomId, userId }) => {
         console.log('mute', userId)
@@ -83,7 +80,6 @@ io.on('connection', (socket) => {
             io.to(clientId).emit(ACTIONS.MUTE, { peerId: socket.id, userId })
         })
     })
-
     // handle unmute
     socket.on(ACTIONS.UNMUTE, ({ roomId, userId }) => {
         console.log('unmute', userId)
@@ -92,7 +88,6 @@ io.on('connection', (socket) => {
             io.to(clientId).emit(ACTIONS.UNMUTE, { peerId: socket.id, userId })
         })
     })
-
     // leave room
     const leaveRoom = async ({ roomId }) => {
         const { rooms } = socket

@@ -13,5 +13,7 @@ router.post('/logout', authMiddleware, authController.logout)
 router.post('/rooms', authMiddleware, roomsController.create)
 router.get('/rooms', authMiddleware, roomsController.getAllRooms)
 router.get('/rooms/:roomId', authMiddleware, roomsController.getRoom)
+router.put('/rooms/:roomId', authMiddleware, roomsController.editRoom)
+router.delete('/rooms/:roomId', authMiddleware, roomsController.deleteRoom)
 
 module.exports = router
