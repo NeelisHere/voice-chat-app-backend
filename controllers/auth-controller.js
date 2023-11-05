@@ -4,6 +4,13 @@ const userServices = require('../services/user-services.js')
 const tokenServices = require('../services/token-services.js')
 const UserDTOS = require('../dtos/user-dtos.js')
 
+const cookieOptions = {
+    httpOnly: true,
+    maxAge: 15 * 60 * 1000,
+    sameSite: 'none',
+    secure: true
+}
+
 class AuthController {
     async sendOTP(req, res) {
         const { email } = req.body
@@ -67,15 +74,9 @@ class AuthController {
 
         await tokenServices.storeRefreshToken(refreshToken, user._id)
 
-        res.cookie('refreshToken', refreshToken, {
-            maxAge: 1000*60*60*24*30,
-            httpOnly: true
-        })
+        res.cookie('refreshToken', refreshToken, cookieOptions)
 
-        res.cookie('accessToken', accessToken, {
-            maxAge: 1000*60*60*24*30,
-            httpOnly: true
-        })
+        res.cookie('accessToken', accessToken, cookieOptions)
 
         const _user = new UserDTOS(user)
         return res.json({ auth: true, user: _user })
@@ -133,15 +134,9 @@ class AuthController {
             })
         }
         // 7. send them in res.cookie 
-        res.cookie('refreshToken', refreshToken, {
-            maxAge: 1000*60*60*24*30,
-            httpOnly: true
-        })
+        res.cookie('refreshToken', refreshToken, cookieOptions)
 
-        res.cookie('accessToken', accessToken, {
-            maxAge: 1000*60*60*24*30,
-            httpOnly: true
-        })
+        res.cookie('accessToken', accessToken, cookieOptions)
 
         return res.json({ 
             isAuth: true, 
@@ -155,8 +150,8 @@ class AuthController {
         // 1. delete refresh token from db
         await tokenServices.removeToken(refreshToken)
         // 2. delete cookies 
-        res.clearCookie('refreshToken')
-        res.clearCookie('accessToken')
+        res.clearCookie('refreshToken', cookieOptions)
+        res.clearCookie('accessToken', cookieOptions)
         res.json({
             success: true,
             user: null,
