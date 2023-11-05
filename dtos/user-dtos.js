@@ -7,7 +7,7 @@ class UserDTOS {
         this.createdAt = createdAt
         this.email = email
         this.username = username
-        this.avatar = avatar? `${process.env.API_BASE_URL}${avatar}` : null
+        this.avatar = avatar
     }
 }
 

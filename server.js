@@ -23,7 +23,7 @@ app.use(cors({
     credentials: true
 }))
 app.use(cp())
-app.use(express.json({ limit: '10mb' }))
+app.use(express.json({ limit: '30mb' }))
 app.use('/api', router)
 // for serving image files stored in the storage-folder
 app.use('/storage', express.static('storage'))
