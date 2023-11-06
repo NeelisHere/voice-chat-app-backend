@@ -14,6 +14,7 @@ class RoomsServices {
                                     .populate('speakers')
                                     .populate('ownerId')
                                     .exec()
+        // console.log(rooms[0].speakers)
         return rooms
     }
 
