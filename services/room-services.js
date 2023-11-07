@@ -4,7 +4,7 @@ class RoomsServices {
     async create(payload) {
         const { topic, roomType, ownerId } = payload;
         const room = await RoomModel.create({
-            topic, roomType, ownerId, speakers: [ownerId]
+            topic, roomType, ownerId, speakers: []
         })
         return room;
     }

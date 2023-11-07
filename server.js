@@ -5,6 +5,7 @@ const { connectDB } = require('./database.js')
 const cors = require('cors')
 const cp = require('cookie-parser')
 const ACTIONS = require('./socket-actions.js')
+const RoomModel = require('./models/room-model.js');
 
 const PORT = process.env.PORT || 8000
 
@@ -38,7 +39,7 @@ const socketUserMapping = {}
 io.on('connection', (socket) => {
     console.log('New Connection', socket.id)
 
-    socket.on(ACTIONS.JOIN, ({ roomId, user }) => {
+    socket.on(ACTIONS.JOIN, async ({ roomId, user }) => {
         socketUserMapping[socket.id] = user
         const clients = Array.from(io.sockets.adapter.rooms.get(roomId) || [])
         // console.log(clients)
@@ -57,6 +58,14 @@ io.on('connection', (socket) => {
                 user: socketUserMapping[clientId]
             })
         })
+        try {
+            await RoomModel.updateOne(
+                { _id: roomId },
+                { $push: { speakers: user._id } }
+            )
+        } catch (error) {
+            console.log(error)
+        }
         socket.join(roomId) // include the latest user in the room
     })
     //handle relay-ice
@@ -92,6 +101,14 @@ io.on('connection', (socket) => {
     // leave room
     const leaveRoom = async ({ roomId }) => {
         const { rooms } = socket
+        try {
+            await RoomModel.updateOne(
+                { _id: roomId },
+                { $pull: { speakers: socketUserMapping[socket.id]?._id } }
+            )
+        } catch (error) {
+            console.log(error)
+        }
         Array.from(rooms).forEach((roomId) => {
             const clients = Array.from(io.sockets.adapter.rooms.get(roomId) || [])
             clients.forEach((clientId) => {
